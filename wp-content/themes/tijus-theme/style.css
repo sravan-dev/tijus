@@ -1,0 +1,44 @@
+/*
+Theme Name: Tijus Theme
+Theme URI: https://example.com/tijus-theme
+Author: Tijus
+Author URI: https://example.com
+Description: A custom WordPress theme automatically generated from the static Edule template. Fully compatible with Elementor page builder.
+Version: 1.0.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: tijus-theme
+Tags: custom-background, custom-logo, custom-menu, featured-images, threaded-comments, translation-ready
+*/
+
+/* Custom Elementor overrides if needed */
+body.elementor-page .elementor-section {
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Navigation active indicator ───────────────────────────────────────────
+   The theme's JS adds .active to menu items, which can mark multiple items.
+   Disable the JS-driven active style and rely on WordPress's current-menu-item
+   class instead so only the current page shows the underline indicator.
+   ───────────────────────────────────────────────────────────────────────── */
+.header-menu ul li.active > a {
+    color: inherit;
+}
+.header-menu ul li.active > a:before {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Current page / ancestor: show the underline */
+.header-menu ul li.current-menu-item > a,
+.header-menu ul li.current-menu-ancestor > a,
+.header-menu ul li.current-page-ancestor > a {
+    color: #309255;
+}
+.header-menu ul li.current-menu-item > a:before,
+.header-menu ul li.current-menu-ancestor > a:before,
+.header-menu ul li.current-page-ancestor > a:before {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
