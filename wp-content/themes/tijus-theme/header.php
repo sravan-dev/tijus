@@ -114,7 +114,12 @@
 
                         <!-- Header Logo Start -->
                         <div class="header-logo">
-                            <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><img src="<?php echo tijus_get_logo_url(); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"></a>
+                            <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><img src="<?php echo tijus_get_logo_url(); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"<?php
+                                $logo_w = get_theme_mod( 'tijus_logo_width', '' );
+                                $logo_h = get_theme_mod( 'tijus_logo_height', '' );
+                                if ( $logo_w ) echo ' width="' . absint( $logo_w ) . '"';
+                                if ( $logo_h ) echo ' height="' . absint( $logo_h ) . '"';
+                            ?>></a>
                         </div>
                         <!-- Header Logo End -->
 

@@ -89,6 +89,12 @@ define( 'WP_DEBUG', false );
 
 /* Add any custom values between this line and the "stop editing" line. */
 
+/** Allow large file uploads (64 MB). */
+define( 'WP_MEMORY_LIMIT', '256M' );
+
+/** Allow unfiltered uploads (webp, png, jpg, svg, etc.). */
+define( 'ALLOW_UNFILTERED_UPLOADS', true );
+
 
 
 /* That's all, stop editing! Happy publishing. */

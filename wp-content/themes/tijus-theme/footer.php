@@ -20,7 +20,14 @@
                             ?>
                             <div class="footer-widget">
                                 <div class="widget-logo">
-                                    <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><img src="<?php echo tijus_get_logo_url(); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"></a>
+                                    <?php
+                                    $fl_w = get_theme_mod( 'tijus_footer_logo_width', '' );
+                                    $fl_h = get_theme_mod( 'tijus_footer_logo_height', '' );
+                                    $fl_style = '';
+                                    if ( $fl_w ) $fl_style .= 'width:' . intval( $fl_w ) . 'px;';
+                                    if ( $fl_h ) $fl_style .= 'height:' . intval( $fl_h ) . 'px;';
+                                    ?>
+                                    <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><img src="<?php echo tijus_get_logo_url(); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"<?php echo $fl_style ? ' style="' . esc_attr( $fl_style ) . '"' : ''; ?>></a>
                                 </div>
 
                                 <div class="widget-address">
@@ -175,6 +182,284 @@
 
 
 
+
+<?php if ( is_singular( 'course' ) ) : ?>
+<!-- Enrollment Modal -->
+<div class="modal fade" id="enrollmentModal" tabindex="-1" aria-labelledby="enrollmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                <h5 class="modal-title" id="enrollmentModalLabel">Enroll in <?php the_title(); ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <style>
+                    #enrollmentForm input.form-control, 
+                    #enrollmentForm select.form-select {
+                        border: 1px solid #000 !important;
+                    }
+                </style>
+                <form id="enrollmentForm" method="post">
+                    <input type="hidden" name="action" value="tijus_enroll_user">
+                    <input type="hidden" name="enroll_nonce" value="<?php echo esc_attr( wp_create_nonce( 'tijus_enroll_action' ) ); ?>">
+                    <input type="hidden" name="course_id" value="<?php echo get_the_ID(); ?>">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight:600;">First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" class="form-control" required style="height: 45px; border-radius: 5px;">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight:600;">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" style="height: 45px; border-radius: 5px;">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight:600;">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" id="enroll_email" class="form-control" required style="height: 45px; border-radius: 5px;">
+                        </div>
+                        <div class="col-md-6 mb-3" id="password_wrapper">
+                            <label class="form-label" style="font-weight:600;">Password <span class="text-danger">*</span></label>
+                            <input type="password" name="password" id="enroll_password" class="form-control" required style="height: 45px; border-radius: 5px;">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight:600;">Phone Number <span class="text-danger">*</span></label>
+                            <input type="text" name="phone" class="form-control" required style="height: 45px; border-radius: 5px;">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight:600;">WhatsApp/Phone No.</label>
+                            <input type="text" name="whatsapp" class="form-control" style="height: 45px; border-radius: 5px;">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight:600;">Course Mode <span class="text-danger">*</span></label>
+                            <select name="course_mode" class="form-select" required style="height: 45px; border-radius: 5px;">
+                                <option value="">Select Mode</option>
+                                <option value="Online">Online</option>
+                                <option value="Offline">Offline</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight:600;">Course <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" value="<?php echo esc_attr( get_the_title() ); ?>" readonly style="height: 45px; border-radius: 5px; background: #f0f0f0;">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight:600;">Country</label>
+                            <input type="text" name="country" class="form-control" style="height: 45px; border-radius: 5px;">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight:600;">City</label>
+                            <input type="text" name="city" class="form-control" style="height: 45px; border-radius: 5px;">
+                        </div>
+                    </div>
+
+                    <div id="enrollmentMessage" class="alert d-none mt-3" style="font-size:14px; border-radius:5px;"></div>
+
+                    <div class="text-end mt-4">
+                        <button type="submit" class="btn btn-primary btn-hover-dark w-100" id="enrollSubmitBtn" style="height: 50px; font-weight:600; font-size:16px;">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var enrollForm = document.getElementById('enrollmentForm');
+    if (enrollForm) {
+        var emailInput = document.getElementById('enroll_email');
+        var passwordWrapper = document.getElementById('password_wrapper');
+        var passwordInput = document.getElementById('enroll_password');
+        var submitBtn = document.getElementById('enrollSubmitBtn');
+        var msgBox = document.getElementById('enrollmentMessage');
+        
+        var isEmailExisting = false;
+        var checkTimeout = null;
+        
+        emailInput.addEventListener('input', function() {
+            clearTimeout(checkTimeout);
+            var emailVal = this.value.trim();
+            if (emailVal.length > 5 && emailVal.includes('@')) {
+                checkTimeout = setTimeout(function() {
+                    var formData = new FormData();
+                    formData.append('action', 'tijus_check_email_exists');
+                    formData.append('email', emailVal);
+                    
+                    fetch('<?php echo esc_url( admin_url('admin-ajax.php') ); ?>', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.data && data.data.exists) {
+                            isEmailExisting = true;
+                            passwordWrapper.classList.add('d-none');
+                            passwordInput.removeAttribute('required');
+                            submitBtn.innerHTML = 'Login to Enroll';
+                            msgBox.classList.remove('d-none', 'alert-danger');
+                            msgBox.classList.add('alert-success');
+                            msgBox.innerHTML = 'Account found! Please login to immediately enroll.';
+                        } else {
+                            isEmailExisting = false;
+                            passwordWrapper.classList.remove('d-none');
+                            passwordInput.setAttribute('required', 'required');
+                            submitBtn.innerHTML = 'Submit';
+                            msgBox.classList.add('d-none');
+                        }
+                    });
+                }, 500);
+            } else {
+                isEmailExisting = false;
+                passwordWrapper.classList.remove('d-none');
+                passwordInput.setAttribute('required', 'required');
+                submitBtn.innerHTML = 'Submit';
+            }
+        });
+
+        enrollForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (isEmailExisting) {
+                var emailVal = emailInput.value.trim();
+                var courseId = document.querySelector('input[name="course_id"]').value;
+                var baseLoginUrl = '<?php echo esc_url( wp_login_url( get_permalink() ) ); ?>';
+                
+                // Add query args securely considering existing parameters like `?redirect_to=`
+                var cleanLoginUrl = baseLoginUrl.replace(/&amp;/g, '&');
+                var separator = cleanLoginUrl.indexOf('?') !== -1 ? '&' : '?';
+                var finalUrl = cleanLoginUrl + separator + 'auto_enroll_course=' + courseId + '&log=' + encodeURIComponent(emailVal);
+                
+                window.location.href = finalUrl;
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Processing...';
+            msgBox.classList.add('d-none');
+            msgBox.classList.remove('alert-danger', 'alert-success');
+            
+            var formData = new FormData(enrollForm);
+            
+            fetch('<?php echo esc_url( admin_url('admin-ajax.php') ); ?>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                msgBox.classList.remove('d-none');
+                if (data.success) {
+                    msgBox.classList.add('alert-success');
+                    msgBox.innerHTML = data.data;
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    msgBox.classList.add('alert-danger');
+                    msgBox.innerHTML = data.data;
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Submit';
+                }
+            })
+            .catch(error => {
+                msgBox.classList.remove('d-none', 'alert-success');
+                msgBox.classList.add('alert-danger');
+                msgBox.innerHTML = 'An unexpected error occurred.';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit';
+            });
+        });
+    }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var favorites = JSON.parse(localStorage.getItem('tijus_favorites')) || [];
+
+    // Initialize states on load
+    function initFavorites() {
+        var loveBtns = document.querySelectorAll('.tijus-love-btn');
+        loveBtns.forEach(function(btn) {
+            var id = btn.getAttribute('data-target-id');
+            if (favorites.includes(id)) {
+                btn.innerHTML = '<i class="icofont-heart"></i>';
+                btn.style.color = '#ff4500';
+            }
+        });
+    }
+    initFavorites();
+    
+    // Toast UI builder
+    function showToast(message) {
+        var toast = document.createElement('div');
+        toast.style.position = 'fixed';
+        toast.style.bottom = '30px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = '#333';
+        toast.style.color = '#fff';
+        toast.style.padding = '12px 24px';
+        toast.style.borderRadius = '30px';
+        toast.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+        toast.style.zIndex = '9999';
+        toast.style.fontSize = '14px';
+        toast.style.transition = 'opacity 0.3s ease';
+        toast.innerHTML = message;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 3000);
+    }
+
+    // Event Delegation (fixes AJAX loaded cards)
+    document.body.addEventListener('click', function(e) {
+        var btn = e.target.closest('.tijus-love-btn');
+        if (!btn) return;
+        
+        e.preventDefault();
+        var targetId = btn.getAttribute('data-target-id');
+        var index = favorites.indexOf(targetId);
+        
+        if (index > -1) {
+            // Remove from favorites
+            favorites.splice(index, 1);
+            btn.innerHTML = '<i class="icofont-heart-alt"></i>';
+            btn.style.color = '#999';
+            showToast('Removed from Favorites');
+        } else {
+            // Add to favorites
+            favorites.push(targetId);
+            btn.innerHTML = '<i class="icofont-heart"></i>';
+            btn.style.color = '#ff4500';
+            showToast('Added to Favorites ❤️');
+        }
+        
+        localStorage.setItem('tijus_favorites', JSON.stringify(favorites));
+    });
+    
+    // Re-initialize after AJAX calls if jQuery ajaxComplete is available (WordPress core)
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).ajaxComplete(function() {
+            initFavorites();
+        });
+    }
+});
+</script>
+<?php endif; ?>
 
 <?php wp_footer(); ?>
 </body>

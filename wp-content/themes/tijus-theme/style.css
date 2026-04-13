@@ -34,7 +34,7 @@ body.elementor-page .elementor-section {
 .header-menu ul li.current-menu-item > a,
 .header-menu ul li.current-menu-ancestor > a,
 .header-menu ul li.current-page-ancestor > a {
-    color: #309255;
+    color: var(--bs-primary);
 }
 .header-menu ul li.current-menu-item > a:before,
 .header-menu ul li.current-menu-ancestor > a:before,

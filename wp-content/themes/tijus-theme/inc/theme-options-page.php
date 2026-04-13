@@ -45,6 +45,11 @@ function tijus_options_save() {
 		'tijus_footer_address_title' => 'sanitize_text_field',
 		'tijus_footer_address_city'  => 'sanitize_text_field',
 		'tijus_copyright_text'       => 'wp_kses_post',
+		'tijus_logo_width'           => 'absint',
+		'tijus_logo_height'          => 'absint',
+		'tijus_footer_logo_width'    => 'absint',
+		'tijus_footer_logo_height'   => 'absint',
+		'tijus_color_palette'        => 'sanitize_key',
 	];
 
 	foreach ( $fields as $key => $sanitize_cb ) {
@@ -139,6 +144,67 @@ function tijus_options_render_page() {
 		}
 		.tijus-logo-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 		#tijus_logo { flex: 1; min-width: 0; }
+
+		/* Color Palette Picker */
+		.tijus-palette-grid {
+			display: flex;
+			gap: 12px;
+			flex-wrap: wrap;
+			padding: 4px 0;
+		}
+		.tijus-palette-card {
+			position: relative;
+			cursor: pointer;
+			border: 2px solid #dcdcde;
+			border-radius: 8px;
+			padding: 12px 14px 10px;
+			background: #fff;
+			text-align: center;
+			transition: border-color .15s, box-shadow .15s;
+			min-width: 110px;
+		}
+		.tijus-palette-card:hover {
+			border-color: #2271b1;
+		}
+		.tijus-palette-card.active {
+			border-color: #2271b1;
+			box-shadow: 0 0 0 1px #2271b1;
+		}
+		.tijus-palette-card.active::after {
+			content: "\f147";
+			font-family: dashicons;
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			background: #2271b1;
+			color: #fff;
+			border-radius: 50%;
+			width: 20px;
+			height: 20px;
+			font-size: 16px;
+			line-height: 20px;
+			text-align: center;
+		}
+		.tijus-palette-card input[type="radio"] {
+			display: none;
+		}
+		.tijus-palette-dots {
+			display: flex;
+			gap: 4px;
+			justify-content: center;
+			margin-bottom: 6px;
+		}
+		.tijus-palette-dot {
+			width: 22px;
+			height: 22px;
+			border-radius: 50%;
+			border: 1px solid rgba(0,0,0,.1);
+		}
+		.tijus-palette-label {
+			font-size: 11px;
+			font-weight: 600;
+			color: #555;
+		}
 	</style>
 
 	<div class="wrap">
@@ -154,6 +220,34 @@ function tijus_options_render_page() {
 
 		<form method="post" action="">
 			<?php wp_nonce_field( 'tijus_save_options', 'tijus_options_nonce' ); ?>
+
+			<?php /* ── Color Palette ────────────────── */ ?>
+			<?php
+			$palettes        = tijus_get_color_palettes();
+			$active_palette  = get_theme_mod( 'tijus_color_palette', 'default' );
+			?>
+			<div class="postbox" style="margin-top:20px;">
+				<div class="postbox-header"><h2 class="hndle">Color Palette</h2></div>
+				<div class="inside" style="padding:12px 16px 16px;">
+					<div class="tijus-palette-grid">
+						<?php foreach ( $palettes as $key => $pal ) : ?>
+						<label class="tijus-palette-card<?php echo $key === $active_palette ? ' active' : ''; ?>">
+							<input type="radio" name="tijus_color_palette" value="<?php echo esc_attr( $key ); ?>"
+								<?php checked( $active_palette, $key ); ?>>
+							<div class="tijus-palette-dots">
+								<span class="tijus-palette-dot" style="background:<?php echo esc_attr( $pal['primary'] ); ?>;"></span>
+								<span class="tijus-palette-dot" style="background:<?php echo esc_attr( $pal['success'] ); ?>;"></span>
+								<span class="tijus-palette-dot" style="background:<?php echo esc_attr( $pal['warning'] ); ?>;"></span>
+								<span class="tijus-palette-dot" style="background:<?php echo esc_attr( $pal['danger'] ); ?>;"></span>
+								<span class="tijus-palette-dot" style="background:<?php echo esc_attr( $pal['dark'] ); ?>;"></span>
+							</div>
+							<span class="tijus-palette-label"><?php echo esc_html( $pal['label'] ); ?></span>
+						</label>
+						<?php endforeach; ?>
+					</div>
+					<p class="description" style="margin-top:10px;">Select a color palette. Changes apply site-wide after saving.</p>
+				</div>
+			</div>
 
 			<div class="tijus-opts-grid">
 
@@ -186,6 +280,34 @@ function tijus_options_render_page() {
 										<?php endif; ?>
 									</div>
 									<p class="description" style="margin-top:6px;">Select from Media Library or paste a URL directly.</p>
+								</td>
+							</tr>
+							<tr>
+								<th><label>Dimensions</label></th>
+								<td>
+									<div style="display:flex;gap:8px;align-items:center;">
+										<input type="text" id="tijus_logo_width" name="tijus_logo_width"
+											value="<?php echo esc_attr( get_theme_mod( 'tijus_logo_width', '' ) ); ?>"
+											placeholder="Auto" style="width:80px;"> <span>×</span>
+										<input type="text" id="tijus_logo_height" name="tijus_logo_height"
+											value="<?php echo esc_attr( get_theme_mod( 'tijus_logo_height', '' ) ); ?>"
+											placeholder="Auto" style="width:80px;"> <span>px</span>
+									</div>
+									<p class="description" style="margin-top:6px;">Header logo width and height in pixels. Leave blank for auto.</p>
+								</td>
+							</tr>
+							<tr>
+								<th><label>Footer Logo Size</label></th>
+								<td>
+									<div style="display:flex;gap:8px;align-items:center;">
+										<input type="text" id="tijus_footer_logo_width" name="tijus_footer_logo_width"
+											value="<?php echo esc_attr( get_theme_mod( 'tijus_footer_logo_width', '' ) ); ?>"
+											placeholder="Auto" style="width:80px;"> <span>×</span>
+										<input type="text" id="tijus_footer_logo_height" name="tijus_footer_logo_height"
+											value="<?php echo esc_attr( get_theme_mod( 'tijus_footer_logo_height', '' ) ); ?>"
+											placeholder="Auto" style="width:80px;"> <span>px</span>
+									</div>
+									<p class="description" style="margin-top:6px;">Footer logo width and height in pixels. Leave blank for auto.</p>
 								</td>
 							</tr>
 						</table>
@@ -352,6 +474,12 @@ function tijus_options_render_page() {
 
 		$('#tijus-social-rows').on('click', '.tijus-remove-social', function(){
 			$(this).closest('.tijus-social-row').remove();
+		});
+
+		// Color palette picker
+		$('.tijus-palette-card').on('click', function(){
+			$('.tijus-palette-card').removeClass('active');
+			$(this).addClass('active');
 		});
 	});
 	</script>

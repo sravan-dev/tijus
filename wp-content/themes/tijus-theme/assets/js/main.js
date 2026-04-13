@@ -308,8 +308,123 @@
     });
 
     
-})(jQuery);
+    /*--
+        Courses AJAX Filtering
+    -----------------------------------*/
+    if (typeof tijusAjax !== 'undefined' && $('#tijus-courses-grid').length) {
+        
+        function fetchCourses(paged) {
+            var gridUrl = new URL(window.location.href);
+            var params = new URLSearchParams(gridUrl.search);
+            
+            var category = params.get('course_category') || '';
+            var search = params.get('course_search') || '';
+            
+            var $grid = $('#tijus-courses-grid');
+            var $pagination = $('#tijus-courses-pagination-wrapper');
+            
+            $grid.css('opacity', '0.5');
+            $pagination.css('opacity', '0.5');
+            
+            $.ajax({
+                url: tijusAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'tijus_filter_courses',
+                    nonce: tijusAjax.nonce,
+                    course_category: category,
+                    course_search: search,
+                    paged: paged || 1
+                },
+                success: function(res) {
+                    if (res.success) {
+                        $grid.html(res.data.courses).css('opacity', '1');
+                        $pagination.html(res.data.pagination).css('opacity', '1');
+                    }
+                },
+                error: function() {
+                    $grid.css('opacity', '1');
+                    $pagination.css('opacity', '1');
+                }
+            });
+        }
 
+        // Category Menu Click
+        $('#tijus-courses-category-menu a').on('click', function(e) {
+            e.preventDefault();
+            $('#tijus-courses-category-menu a').removeClass('active');
+            $(this).addClass('active');
+
+            var href = new URL(this.href);
+            var cat = href.searchParams.get('course_category') || '';
+            
+            var currentUrl = new URL(window.location.href);
+            if (cat) currentUrl.searchParams.set('course_category', cat);
+            else currentUrl.searchParams.delete('course_category');
+            
+            currentUrl.searchParams.delete('paged');
+            window.history.pushState({}, '', currentUrl);
+            
+            var $form = $('#tijus-courses-filter-form');
+            if (cat) {
+                if ($form.find('input[name="course_category"]').length) {
+                    $form.find('input[name="course_category"]').val(cat);
+                } else {
+                    $form.append('<input type="hidden" name="course_category" value="'+cat+'" />');
+                }
+            } else {
+                $form.find('input[name="course_category"]').remove();
+            }
+
+            fetchCourses(1);
+        });
+
+        // Search Form Submit
+        $('#tijus-courses-filter-form').on('submit', function(e) {
+            e.preventDefault();
+            var searchVal = $(this).find('input[name="course_search"]').val();
+            
+            var currentUrl = new URL(window.location.href);
+            if (searchVal) currentUrl.searchParams.set('course_search', searchVal);
+            else currentUrl.searchParams.delete('course_search');
+            
+            currentUrl.searchParams.delete('paged');
+            window.history.pushState({}, '', currentUrl);
+            
+            fetchCourses(1);
+        });
+
+        // Pagination Click
+        $(document).on('click', '#tijus-courses-pagination-wrapper a', function(e) {
+            e.preventDefault();
+            var href = new URL(this.href);
+            var paged = href.searchParams.get('paged') || 1;
+            
+            if (!paged || paged === "1") {
+                var pathParts = href.pathname.split('/');
+                var pagedIndex = pathParts.indexOf('page');
+                if (pagedIndex !== -1 && pathParts.length > pagedIndex + 1) {
+                    paged = pathParts[pagedIndex + 1];
+                }
+            }
+            
+            var currentUrl = new URL(window.location.href);
+            if (paged > 1) {
+                currentUrl.searchParams.set('paged', paged);
+            } else {
+                currentUrl.searchParams.delete('paged');
+            }
+            
+            window.history.pushState({}, '', currentUrl);
+            fetchCourses(paged);
+            
+            $('html, body').animate({
+                scrollTop: $('#tijus-courses-grid').offset().top - 150
+            }, 500);
+        });
+    }
+
+})(jQuery);
 
 
 
