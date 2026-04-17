@@ -95,7 +95,17 @@ define( 'WP_MEMORY_LIMIT', '256M' );
 /** Allow unfiltered uploads (webp, png, jpg, svg, etc.). */
 define( 'ALLOW_UNFILTERED_UPLOADS', true );
 
+// Auto-detect WP_HOME and WP_SITEURL based on current environment
+$protocol = ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' || ( isset( $_SERVER['SERVER_PORT'] ) && $_SERVER['SERVER_PORT'] == 443 ) || ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' ) ) ? 'https://' : 'http://';
+$host = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : 'localhost';
 
+define( 'WP_HOME', $protocol . $host );
+define( 'WP_SITEURL', $protocol . $host );
+
+// Fix for proxy setups resolving HTTPS correctly
+if ( strpos( $protocol, 'https' ) !== false ) {
+	$_SERVER['HTTPS'] = 'on';
+}
 
 /* That's all, stop editing! Happy publishing. */
 

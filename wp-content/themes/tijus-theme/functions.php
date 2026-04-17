@@ -806,3 +806,49 @@ function tijus_open_existing_course_comments_once() {
     }
 }
 add_action( 'init', 'tijus_open_existing_course_comments_once' );
+
+/**
+ * Auto-detect and fix hardcoded database URLs on the fly for staging and local sync natively.
+ * Compares the raw DB site URL with current auto-detected WP_SITEURL.
+ */
+add_action( 'template_redirect', 'tijus_dynamic_url_replacement', -9999 );
+function tijus_dynamic_url_replacement() {
+    if ( ! is_admin() ) {
+        ob_start( 'tijus_replace_hardcoded_urls' );
+    }
+}
+
+function tijus_replace_hardcoded_urls( $html ) {
+    global $wpdb;
+    static $original_url = null;
+    $current_url = home_url();
+
+    if ( $original_url === null ) {
+        $original_url = $wpdb->get_var( "SELECT option_value FROM $wpdb->options WHERE option_name = 'siteurl'" );
+    }
+
+    if ( $original_url && $original_url !== $current_url ) {
+        $html = str_replace( $original_url, $current_url, $html );
+        $html = str_replace( str_replace('/', '\/', $original_url), str_replace('/', '\/', $current_url), $html );
+    }
+    return $html;
+}
+
+/**
+ * Flush Elementor CSS cache automatically if environment URL changes.
+ */
+add_action( 'init', 'tijus_auto_flush_elementor_css' );
+function tijus_auto_flush_elementor_css() {
+    global $wpdb;
+    
+    // Avoid running this on every single page load if possible, but safe since it only checks transient
+    $original_url = $wpdb->get_var( "SELECT option_value FROM $wpdb->options WHERE option_name = 'siteurl'" );
+    if ( $original_url && $original_url !== home_url() ) {
+		if ( ! get_transient( 'tijus_elementor_cache_cleared_' . md5( home_url() ) ) ) {
+			if ( class_exists( '\Elementor\Plugin' ) ) {
+				\Elementor\Plugin::$instance->files_manager->clear_cache();
+			}
+			set_transient( 'tijus_elementor_cache_cleared_' . md5( home_url() ), true, DAY_IN_SECONDS );
+		}
+    }
+}

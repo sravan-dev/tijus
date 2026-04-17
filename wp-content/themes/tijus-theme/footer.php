@@ -382,6 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<?php endif; ?>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -427,6 +428,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event Delegation (fixes AJAX loaded cards)
     document.body.addEventListener('click', function(e) {
+        // Handle dropdown favorite click
+        var dropdownLoveBtn = e.target.closest('.tijus-dropdown-love-btn');
+        if (dropdownLoveBtn) {
+            e.preventDefault();
+            var loveBtn = dropdownLoveBtn.closest('.single-courses').querySelector('.tijus-love-btn');
+            if (loveBtn) {
+                loveBtn.click();
+            }
+            return;
+        }
+
+        // Handle collection click
+        var collectionBtn = e.target.closest('.tijus-collection-btn');
+        if (collectionBtn) {
+            e.preventDefault();
+            showToast('Added to Collection');
+            return;
+        }
+
+        // Handle share click
+        var shareBtn = e.target.closest('.tijus-share-btn');
+        if (shareBtn) {
+            e.preventDefault();
+            var url = shareBtn.getAttribute('data-url');
+            var title = shareBtn.getAttribute('data-title');
+            if (navigator.share) {
+                navigator.share({ title: title, url: url }).catch(function(){});
+            } else {
+                navigator.clipboard.writeText(url).then(function() {
+                    showToast('Link copied to clipboard!');
+                }).catch(function() {
+                    showToast('Failed to copy link.');
+                });
+            }
+            return;
+        }
+
         var btn = e.target.closest('.tijus-love-btn');
         if (!btn) return;
         
@@ -459,7 +497,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-<?php endif; ?>
 
 <?php wp_footer(); ?>
 </body>

@@ -42,10 +42,9 @@ if ( ! $thumbnail_url ) {
                     <span></span>
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a href="#"><i class="icofont-share-alt"></i> Share</a></li>
-                    <li><a href="#"><i class="icofont-plus"></i> Create Collection</a></li>
-                    <li><a href="#"><i class="icofont-star"></i> Favorite</a></li>
-                    <li><a href="#"><i class="icofont-archive"></i> Archive</a></li>
+                    <li><a href="#" class="tijus-share-btn" data-url="<?php the_permalink(); ?>" data-title="<?php the_title_attribute(); ?>"><i class="icofont-share-alt"></i> Share</a></li>
+                    <li><a href="#" class="tijus-collection-btn"><i class="icofont-plus"></i> Create Collection</a></li>
+                    <li><a href="#" class="tijus-dropdown-love-btn"><i class="icofont-star"></i> Favorite</a></li>
                 </ul>
             </div>
         </div>
